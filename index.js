@@ -1,33 +1,35 @@
-const express = require('express')
-const mongoose = require('mongoose');
-const Product = require('./models/product.model.js')
-const app = express()
-app.use(express.json())
+const express = require("express");
+const mongoose = require("mongoose");
+const ProductRoute = require("./routes/product.route.js")
+const swaggerUi = require('swagger-ui-express')
+const swaggerDocument = require('./swagger.js')
+const app = express();
 
+app.use(ProductRoute)
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
+//middleware
+app.use(express.json());
+app.use(express.urlencoded({extended: false}))
 
-app.listen(3000, () => {
-    console.log("Server is running on port 3000")
-})
+//routes
+app.use("/api/products", ProductRoute);
 
+app.get("/", (req, res) => {
+  res.send("Hello, Quang Hung");
+});
 
-app.get('/', (req, res) => {
-    res.send("Hello, Quang Hung")
-})
+mongoose
+  .connect(
+    "mongodb+srv://admin:AoaXPFVEl0MTvYY7@backenddb.mownj9q.mongodb.net/Node-API?retryWrites=true&w=majority&appName=BackendDB"
+  )
+  .then(() => {
+    console.log("Connected to database.");
+    app.listen(3000, () => {
+      console.log("Server is running on port 3000");
+    });
+  })
+  .catch(() => {
+    console.log("Error connecting to database");
+  });
 
-app.post('/api/products', async (req, res) => {
-    try {
-        const product = await Product.create(req.body);
-        res.status(200).json(product);
-    } catch (error) {
-        res.status(500).json({message: error.message})
-    }
-})
-
-mongoose.connect("mongodb+srv://admin:AoaXPFVEl0MTvYY7@backenddb.mownj9q.mongodb.net/Node-API?retryWrites=true&w=majority&appName=BackendDB")
-.then(() => {
-    console.log("Connected to database.")
-})
-.catch(() => {
-    console.log("Error connecting to database")
-})
